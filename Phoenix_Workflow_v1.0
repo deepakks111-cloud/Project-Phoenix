@@ -1,0 +1,17 @@
+PROJECT PHOENIX - WORKFLOW v1.0
+
+1. One engineering artifact at a time.
+
+2. ChatGPT generates one complete artifact.
+
+3. User uploads artifact to GitHub.
+
+4. User commits artifact.
+
+5. User confirms commit.
+
+6. Only after confirmation does ChatGPT generate the next artifact.
+
+7. Overall project progress increases only after a successfully committed engineering artifact.
+
+8. GitHub repository is the single source of truth for the project.
