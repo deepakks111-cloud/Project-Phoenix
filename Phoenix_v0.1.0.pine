@@ -1,0 +1,88 @@
+//@version=6
+//=============================================================================
+// PROJECT PHOENIX
+// Professional Trading Framework
+//-----------------------------------------------------------------------------
+// Version      : v0.1.0
+// Artifact     : PHX-CORE-001A
+// Status       : Production Foundation
+// Repository   : Project-Phoenix
+//-----------------------------------------------------------------------------
+// Copyright (c) 2026
+//=============================================================================
+
+indicator(
+     title      = "Project Phoenix v0.1.0",
+     shorttitle = "Phoenix",
+     overlay    = true,
+     max_labels_count = 500,
+     max_lines_count  = 500,
+     max_boxes_count  = 500
+)
+
+//=============================================================================
+// SECTION 01 : PROJECT INFORMATION
+//=============================================================================
+
+string PHX_NAME        = "Project Phoenix"
+string PHX_VERSION     = "0.1.0"
+string PHX_BUILD       = "PHX-CORE-001A"
+string PHX_STAGE       = "Foundation"
+
+//=============================================================================
+// SECTION 02 : DEVELOPMENT FLAGS
+//=============================================================================
+
+bool PHX_DEBUG_MODE      = false
+bool PHX_DEVELOPER_MODE  = true
+
+//=============================================================================
+// SECTION 03 : MODULE REGISTRY
+// Every future engine will register here.
+//=============================================================================
+
+bool MODULE_CORE         = true
+bool MODULE_MATH         = false
+bool MODULE_TREND        = false
+bool MODULE_MTF          = false
+bool MODULE_STRUCTURE    = false
+bool MODULE_LIQUIDITY    = false
+bool MODULE_FVG          = false
+bool MODULE_ORDERBLOCK   = false
+bool MODULE_ENTRY        = false
+bool MODULE_RISK         = false
+bool MODULE_ALERT        = false
+bool MODULE_DASHBOARD    = false
+bool MODULE_SCANNER      = false
+
+//=============================================================================
+// SECTION 04 : GLOBAL VARIABLES
+//=============================================================================
+
+var bool phx_initialized = false
+var int  phx_bar_index   = na
+
+//=============================================================================
+// SECTION 05 : INITIALIZATION
+//=============================================================================
+
+if not phx_initialized
+    phx_initialized := true
+    phx_bar_index := bar_index
+
+//=============================================================================
+// SECTION 06 : RESERVED FRAMEWORK
+// Future artifacts will populate these sections.
+//
+// PHX-CORE-001B
+// Configuration Manager
+//
+// PHX-CORE-001C
+// Constants & Utility Library
+//
+// PHX-CORE-001D
+// Module Initialization
+//
+// PHX-CORE-001E
+// Performance & Error Handling
+//=============================================================================
