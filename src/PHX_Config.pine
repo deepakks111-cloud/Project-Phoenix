@@ -1,1 +1,75 @@
+//=============================================================================
+// PROJECT PHOENIX
+// MODULE : Configuration Manager
+//-----------------------------------------------------------------------------
+// Purpose:
+// Centralized configuration for Project Phoenix.
+//
+// This module defines all user-configurable settings.
+// Every future engine (Trend, EMA, Liquidity, Market Structure,
+// Fair Value Gaps, Order Blocks, Dashboard, Alerts, Scanner)
+// must obtain its settings from this module.
+//=============================================================================
 
+
+//=============================================================================
+// GENERAL SETTINGS
+//=============================================================================
+
+const string PHX_VERSION = "v0.1.0"
+const string PHX_BUILD   = "RC1"
+
+
+//=============================================================================
+// MODULE ENABLE FLAGS
+//=============================================================================
+
+bool ENABLE_EMA_ENGINE          = true
+bool ENABLE_TREND_ENGINE        = true
+bool ENABLE_VISUALIZATION       = true
+
+// Reserved for future releases
+bool ENABLE_MARKET_STRUCTURE    = false
+bool ENABLE_LIQUIDITY           = false
+bool ENABLE_FVG                 = false
+bool ENABLE_ORDER_BLOCKS        = false
+bool ENABLE_DASHBOARD           = false
+bool ENABLE_ALERT_ENGINE        = false
+
+
+//=============================================================================
+// EMA SETTINGS
+//=============================================================================
+
+int EMA_FAST_LENGTH = 20
+int EMA_MID_LENGTH  = 50
+int EMA_SLOW_LENGTH = 200
+
+
+//=============================================================================
+// TREND SETTINGS
+//=============================================================================
+
+bool SHOW_TREND_BACKGROUND = true
+bool SHOW_TREND_LABELS      = true
+
+
+//=============================================================================
+// VISUALIZATION SETTINGS
+//=============================================================================
+
+bool SHOW_EMA20  = true
+bool SHOW_EMA50  = true
+bool SHOW_EMA200 = true
+
+
+//=============================================================================
+// THEME SETTINGS
+//=============================================================================
+
+string PHX_THEME = "Default"
+
+
+//=============================================================================
+// END OF CONFIGURATION MANAGER
+//=============================================================================
