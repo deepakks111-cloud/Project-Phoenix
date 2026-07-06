@@ -1,4 +1,3 @@
-//@version=6
 //=============================================================================
 // PROJECT PHOENIX
 //-----------------------------------------------------------------------------
@@ -30,4 +29,12 @@
 //
 // Copyright
 // ---------
-// © 
+// © 2026 Project Phoenix
+//
+// NOTE
+// ----
+// This file is a source module used during Project Phoenix development.
+// It is NOT intended to compile independently.
+// The final production file (Phoenix_v0.1.0.pine) will contain the Pine Script
+// declaration and indicator() call.
+//=============================================================================
