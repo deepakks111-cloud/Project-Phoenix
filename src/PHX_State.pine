@@ -1,0 +1,167 @@
+//=============================================================================
+// PROJECT PHOENIX
+// MODULE : State Manager
+//-----------------------------------------------------------------------------
+// Release : PHX-R001
+// Version : v0.1.0
+//
+// Purpose
+// -------
+// Central runtime state for Project Phoenix.
+//
+// Every engine updates this state.
+// Every visualization component reads this state.
+//
+// This becomes the single source of truth for the framework.
+//=============================================================================
+
+
+//=============================================================================
+// EMA STATE
+//=============================================================================
+
+var float PHX_EMA20  = na
+var float PHX_EMA50  = na
+var float PHX_EMA200 = na
+
+
+//=============================================================================
+// TREND STATE
+//=============================================================================
+
+var int PHX_CURRENT_TREND = PHX_TREND_UNKNOWN
+
+var string PHX_CURRENT_TREND_NAME = "Unknown"
+
+var color PHX_CURRENT_TREND_COLOR = color.gray
+
+
+//=============================================================================
+// SIGNAL STATE
+//=============================================================================
+
+var int PHX_CURRENT_SIGNAL = PHX_SIGNAL_NONE
+
+
+//=============================================================================
+// MARKET STRUCTURE STATE
+//=============================================================================
+
+var int PHX_MARKET_STRUCTURE = PHX_STRUCTURE_NONE
+
+
+//=============================================================================
+// BOS / CHOCH STATE
+//=============================================================================
+
+var int PHX_BOS_STATE   = PHX_BOS_NONE
+var int PHX_CHOCH_STATE = PHX_CHOCH_NONE
+
+
+//=============================================================================
+// LIQUIDITY STATE
+//=============================================================================
+
+var int PHX_LIQUIDITY_STATE = PHX_LIQUIDITY_NONE
+
+
+//=============================================================================
+// FAIR VALUE GAP STATE
+//=============================================================================
+
+var int PHX_FVG_STATE = PHX_FVG_NONE
+
+
+//=============================================================================
+// ORDER BLOCK STATE
+//=============================================================================
+
+var int PHX_OB_STATE = PHX_OB_NONE
+
+
+//=============================================================================
+// ALERT STATE
+//=============================================================================
+
+var bool PHX_ALERT_TRIGGERED = false
+
+
+//=============================================================================
+// FRAMEWORK STATE
+//=============================================================================
+
+var bool PHX_STATE_INITIALIZED = false
+
+
+//=============================================================================
+// INITIALIZATION
+//=============================================================================
+
+phxInitializeState() =>
+
+    if not PHX_STATE_INITIALIZED
+
+        PHX_STATE_INITIALIZED := true
+
+
+//=============================================================================
+// UPDATE FUNCTIONS
+//=============================================================================
+
+phxUpdateEMAState(float ema20, float ema50, float ema200)=>
+
+    PHX_EMA20 := ema20
+    PHX_EMA50 := ema50
+    PHX_EMA200 := ema200
+
+
+phxUpdateTrendState(
+
+    int trend,
+
+    string trendName,
+
+    color trendColor
+
+)=>
+
+    PHX_CURRENT_TREND := trend
+    PHX_CURRENT_TREND_NAME := trendName
+    PHX_CURRENT_TREND_COLOR := trendColor
+
+
+phxUpdateSignalState(int signal)=>
+
+    PHX_CURRENT_SIGNAL := signal
+
+
+//=============================================================================
+// READ FUNCTIONS
+//=============================================================================
+
+phxTrend() =>
+    PHX_CURRENT_TREND
+
+
+phxTrendName() =>
+    PHX_CURRENT_TREND_NAME
+
+
+phxTrendColor() =>
+    PHX_CURRENT_TREND_COLOR
+
+
+phxSignal() =>
+    PHX_CURRENT_SIGNAL
+
+
+//=============================================================================
+// MODULE INITIALIZATION
+//=============================================================================
+
+phxInitializeState()
+
+
+//=============================================================================
+// END OF MODULE
+//=============================================================================
