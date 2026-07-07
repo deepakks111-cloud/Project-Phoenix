@@ -1,0 +1,163 @@
+//=============================================================================
+// PROJECT PHOENIX
+// MODULE : Dashboard Engine
+//-----------------------------------------------------------------------------
+// Release : PHX-R001
+// Version : v0.1.0
+//
+// Purpose
+// -------
+// Central dashboard rendering engine.
+//
+// Displays the current Phoenix framework status.
+//
+// Future RC2 additions:
+//
+// • Market Structure
+// • BOS / CHoCH
+// • Liquidity
+// • Fair Value Gap
+// • Order Blocks
+// • Institutional Score
+//=============================================================================
+
+
+//=============================================================================
+// DASHBOARD
+//=============================================================================
+
+var table phxDashboard = table.new(
+     position.top_right,
+     2,
+     8,
+     border_width = 1
+)
+
+
+//=============================================================================
+// DASHBOARD RENDER
+//=============================================================================
+
+phxRenderDashboard() =>
+
+    table.cell(
+        phxDashboard,
+        0,
+        0,
+        "PROJECT PHOENIX",
+        text_color=color.white,
+        bgcolor=color.blue
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        0,
+        PHX_VERSION,
+        text_color=color.white,
+        bgcolor=color.blue
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        1,
+        "Trend"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        1,
+        phxTrendName(),
+        text_color=phxTrendColor()
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        2,
+        "Signal"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        2,
+        str.tostring(phxSignal())
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        3,
+        "EMA20"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        3,
+        str.tostring(PHX_EMA20, format.mintick)
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        4,
+        "EMA50"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        4,
+        str.tostring(PHX_EMA50, format.mintick)
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        5,
+        "EMA200"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        5,
+        str.tostring(PHX_EMA200, format.mintick)
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        6,
+        "Theme"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        6,
+        PHX_THEME
+    )
+
+    table.cell(
+        phxDashboard,
+        0,
+        7,
+        "Release"
+    )
+
+    table.cell(
+        phxDashboard,
+        1,
+        7,
+        PHX_BUILD
+    )
+
+
+//=============================================================================
+// END OF MODULE
+//=============================================================================
