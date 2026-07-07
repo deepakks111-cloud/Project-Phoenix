@@ -1,1 +1,132 @@
+//=============================================================================
+// PROJECT PHOENIX
+// MODULE : Core Framework
+//-----------------------------------------------------------------------------
+// Release      : PHX-R001
+// Version      : v0.1.0
+//
+// Purpose
+// -------
+// This module provides the shared framework used by every Phoenix engine.
+//
+// Responsibilities
+// ----------------
+// • Global state
+// • Shared constants
+// • Utility functions
+// • Validation helpers
+// • Mathematical helpers
+// • Future extension hooks
+//
+// NOTE
+// ----
+// This module is intended to be integrated into the final
+// Phoenix_v0.1.0.pine release.
+//=============================================================================
 
+
+//=============================================================================
+// GLOBAL STATE
+//=============================================================================
+
+var bool   PHX_INITIALIZED = false
+var string PHX_CURRENT_RELEASE = PHX_VERSION
+var string PHX_CURRENT_THEME   = PHX_THEME
+
+
+//=============================================================================
+// FRAMEWORK CONSTANTS
+//=============================================================================
+
+const string PHX_TREND_BULL = "BULLISH"
+const string PHX_TREND_BEAR = "BEARISH"
+const string PHX_TREND_FLAT = "SIDEWAYS"
+
+
+//=============================================================================
+// INITIALIZATION
+//=============================================================================
+
+phxInitialize() =>
+    if not PHX_INITIALIZED
+        PHX_INITIALIZED := true
+
+
+//=============================================================================
+// VALIDATION HELPERS
+//=============================================================================
+
+phxIsPositive(int value) =>
+    value > 0
+
+
+phxIsEnabled(bool flag) =>
+    flag == true
+
+
+//=============================================================================
+// MATHEMATICAL HELPERS
+//=============================================================================
+
+phxMax(float a, float b) =>
+    math.max(a, b)
+
+
+phxMin(float a, float b) =>
+    math.min(a, b)
+
+
+phxAverage(float a, float b) =>
+    (a + b) / 2.0
+
+
+//=============================================================================
+// PRICE HELPERS
+//=============================================================================
+
+phxTypicalPrice() =>
+    (high + low + close) / 3.0
+
+
+phxMedianPrice() =>
+    (high + low) / 2.0
+
+
+//=============================================================================
+// BAR HELPERS
+//=============================================================================
+
+phxIsBullBar() =>
+    close > open
+
+
+phxIsBearBar() =>
+    close < open
+
+
+phxBarRange() =>
+    high - low
+
+
+//=============================================================================
+// FUTURE FRAMEWORK HOOKS
+//=============================================================================
+
+// Reserved for:
+// • Logging
+// • Diagnostics
+// • Performance counters
+// • Object management
+// • Smart Money framework
+
+
+//=============================================================================
+// MODULE INITIALIZATION
+//=============================================================================
+
+phxInitialize()
+
+
+//=============================================================================
+// END OF CORE FRAMEWORK
+//=============================================================================
