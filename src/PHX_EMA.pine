@@ -1,0 +1,109 @@
+//=============================================================================
+// PROJECT PHOENIX
+// MODULE : EMA Engine
+//-----------------------------------------------------------------------------
+// Release : PHX-R001
+// Version : v0.1.0
+//
+// Purpose
+// -------
+// Dedicated EMA calculation engine.
+//
+// This module provides reusable EMA calculations and trend utilities.
+// All future Phoenix modules must use these functions instead of creating
+// independent EMA calculations.
+//=============================================================================
+
+
+//=============================================================================
+// EMA CALCULATIONS
+//=============================================================================
+
+phxEMAFast(series float source) =>
+    ta.ema(source, EMA_FAST_LENGTH)
+
+
+phxEMAMid(series float source) =>
+    ta.ema(source, EMA_MID_LENGTH)
+
+
+phxEMASlow(series float source) =>
+    ta.ema(source, EMA_SLOW_LENGTH)
+
+
+//=============================================================================
+// TREND RELATIONSHIPS
+//=============================================================================
+
+phxBullTrend(float emaFast, float emaMid, float emaSlow) =>
+    emaFast > emaMid and emaMid > emaSlow
+
+
+phxBearTrend(float emaFast, float emaMid, float emaSlow) =>
+    emaFast < emaMid and emaMid < emaSlow
+
+
+phxNeutralTrend(float emaFast, float emaMid, float emaSlow) =>
+    not phxBullTrend(emaFast, emaMid, emaSlow) and
+    not phxBearTrend(emaFast, emaMid, emaSlow)
+
+
+//=============================================================================
+// PRICE POSITION
+//=============================================================================
+
+phxPriceAboveEMA(series float price, float emaValue) =>
+    price > emaValue
+
+
+phxPriceBelowEMA(series float price, float emaValue) =>
+    price < emaValue
+
+
+//=============================================================================
+// EMA SLOPE
+//=============================================================================
+
+phxEMARising(float emaValue) =>
+    emaValue > emaValue[1]
+
+
+phxEMAFalling(float emaValue) =>
+    emaValue < emaValue[1]
+
+
+//=============================================================================
+// CROSS DETECTION
+//=============================================================================
+
+phxBullCross(float emaFast, float emaMid) =>
+    ta.crossover(emaFast, emaMid)
+
+
+phxBearCross(float emaFast, float emaMid) =>
+    ta.crossunder(emaFast, emaMid)
+
+
+//=============================================================================
+// MASTER EMA STRUCTURE
+//=============================================================================
+
+phxBuildEMA(series float source) =>
+
+    ema20  = phxEMAFast(source)
+    ema50  = phxEMAMid(source)
+    ema200 = phxEMASlow(source)
+
+    [
+        ema20,
+        ema50,
+        ema200,
+        phxBullTrend(ema20, ema50, ema200),
+        phxBearTrend(ema20, ema50, ema200),
+        phxNeutralTrend(ema20, ema50, ema200)
+    ]
+
+
+//=============================================================================
+// END OF EMA ENGINE
+//=============================================================================
