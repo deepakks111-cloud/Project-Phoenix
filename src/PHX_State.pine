@@ -2,17 +2,19 @@
 // PROJECT PHOENIX
 // MODULE : State Manager
 //-----------------------------------------------------------------------------
-// Release : PHX-R001
+// Release : PHX-R001 / RC0-011A
 // Version : v0.1.0
 //
 // Purpose
 // -------
-// Central runtime state for Project Phoenix.
+// Central, deterministic runtime state for Project Phoenix.
 //
-// Every engine updates this state.
-// Every visualization component reads this state.
-//
-// This becomes the single source of truth for the framework.
+// Design rules
+// ------------
+// • This module owns state declarations and pure state helpers only.
+// • Functions in this module do not mutate global variables.
+// • PHX_Main.pine calculates the next state and commits it once per bar.
+// • Visualisation, dashboard and alerts read the committed state.
 //=============================================================================
 
 
@@ -29,61 +31,45 @@ var float PHX_EMA200 = na
 // TREND STATE
 //=============================================================================
 
-var int PHX_CURRENT_TREND = PHX_TREND_UNKNOWN
-
-var string PHX_CURRENT_TREND_NAME = "Unknown"
-
-var color PHX_CURRENT_TREND_COLOR = color.gray
+var int    PHX_CURRENT_TREND       = PHX_TREND_UNKNOWN
+var int    PHX_PREVIOUS_TREND      = PHX_TREND_UNKNOWN
+var string PHX_CURRENT_TREND_NAME  = "Unknown"
+var color  PHX_CURRENT_TREND_COLOR = color.gray
+var bool   PHX_TREND_CHANGED       = false
 
 
 //=============================================================================
 // SIGNAL STATE
 //=============================================================================
 
-var int PHX_CURRENT_SIGNAL = PHX_SIGNAL_NONE
+var int    PHX_CURRENT_SIGNAL  = PHX_SIGNAL_NONE
+var int    PHX_PREVIOUS_SIGNAL = PHX_SIGNAL_NONE
+var bool   PHX_SIGNAL_CHANGED  = false
+var string PHX_SIGNAL_ID       = ""
+var int    PHX_SIGNAL_BAR      = na
+var int    PHX_SIGNAL_TIME     = na
 
 
 //=============================================================================
-// MARKET STRUCTURE STATE
+// MARKET-INTELLIGENCE STATE
+// Reserved for later engines; initialized now to preserve one state contract.
 //=============================================================================
 
 var int PHX_MARKET_STRUCTURE = PHX_STRUCTURE_NONE
+var int PHX_BOS_STATE        = PHX_BOS_NONE
+var int PHX_CHOCH_STATE      = PHX_CHOCH_NONE
+var int PHX_LIQUIDITY_STATE  = PHX_LIQUIDITY_NONE
+var int PHX_FVG_STATE        = PHX_FVG_NONE
+var int PHX_OB_STATE         = PHX_OB_NONE
 
 
 //=============================================================================
-// BOS / CHOCH STATE
+// ALERT / EXECUTION BRIDGE STATE
 //=============================================================================
 
-var int PHX_BOS_STATE   = PHX_BOS_NONE
-var int PHX_CHOCH_STATE = PHX_CHOCH_NONE
-
-
-//=============================================================================
-// LIQUIDITY STATE
-//=============================================================================
-
-var int PHX_LIQUIDITY_STATE = PHX_LIQUIDITY_NONE
-
-
-//=============================================================================
-// FAIR VALUE GAP STATE
-//=============================================================================
-
-var int PHX_FVG_STATE = PHX_FVG_NONE
-
-
-//=============================================================================
-// ORDER BLOCK STATE
-//=============================================================================
-
-var int PHX_OB_STATE = PHX_OB_NONE
-
-
-//=============================================================================
-// ALERT STATE
-//=============================================================================
-
-var bool PHX_ALERT_TRIGGERED = false
+var bool   PHX_ALERT_TRIGGERED = false
+var string PHX_ALERT_EVENT_ID  = ""
+var int    PHX_ALERT_BAR       = na
 
 
 //=============================================================================
@@ -91,48 +77,74 @@ var bool PHX_ALERT_TRIGGERED = false
 //=============================================================================
 
 var bool PHX_STATE_INITIALIZED = false
+var int  PHX_STATE_BAR_INDEX   = na
+var int  PHX_STATE_TIME        = na
+var bool PHX_STATE_CONFIRMED   = false
 
 
 //=============================================================================
-// INITIALIZATION
+// PURE VALIDATION HELPERS
 //=============================================================================
 
-phxInitializeState() =>
+phxValidTrend(int trend) =>
+    trend == PHX_TREND_BULL or
+    trend == PHX_TREND_BEAR or
+    trend == PHX_TREND_RANGE or
+    trend == PHX_TREND_UNKNOWN
 
-    if not PHX_STATE_INITIALIZED
 
-        PHX_STATE_INITIALIZED := true
+phxValidSignal(int signal) =>
+    signal == PHX_SIGNAL_BUY or
+    signal == PHX_SIGNAL_SELL or
+    signal == PHX_SIGNAL_NONE
+
+
+phxNormalizeTrend(int trend) =>
+    phxValidTrend(trend) ? trend : PHX_TREND_UNKNOWN
+
+
+phxNormalizeSignal(int signal) =>
+    phxValidSignal(signal) ? signal : PHX_SIGNAL_NONE
 
 
 //=============================================================================
-// UPDATE FUNCTIONS
+// PURE TRANSITION HELPERS
 //=============================================================================
 
-phxUpdateEMAState(float ema20, float ema50, float ema200)=>
-
-    PHX_EMA20 := ema20
-    PHX_EMA50 := ema50
-    PHX_EMA200 := ema200
-
-
-phxUpdateTrendState(
-
-    int trend,
-
-    string trendName,
-
-    color trendColor
-
-)=>
-
-    PHX_CURRENT_TREND := trend
-    PHX_CURRENT_TREND_NAME := trendName
-    PHX_CURRENT_TREND_COLOR := trendColor
+phxResolveSignal(bool bullCondition, bool bearCondition) =>
+    bullCondition and not bearCondition ? PHX_SIGNAL_BUY :
+    bearCondition and not bullCondition ? PHX_SIGNAL_SELL :
+    PHX_SIGNAL_NONE
 
 
-phxUpdateSignalState(int signal)=>
+phxHasTrendChanged(int previousTrend, int currentTrend) =>
+    phxNormalizeTrend(previousTrend) != phxNormalizeTrend(currentTrend)
 
-    PHX_CURRENT_SIGNAL := signal
+
+phxHasSignalChanged(int previousSignal, int currentSignal) =>
+    phxNormalizeSignal(previousSignal) != phxNormalizeSignal(currentSignal)
+
+
+phxIsActionableSignal(int signal) =>
+    normalizedSignal = phxNormalizeSignal(signal)
+    normalizedSignal == PHX_SIGNAL_BUY or normalizedSignal == PHX_SIGNAL_SELL
+
+
+phxSignalDirectionName(int signal) =>
+    normalizedSignal = phxNormalizeSignal(signal)
+    normalizedSignal == PHX_SIGNAL_BUY ? "LONG" :
+    normalizedSignal == PHX_SIGNAL_SELL ? "SHORT" :
+    "NONE"
+
+
+phxBuildSignalId(string symbol, string timeframe, int signal, int signalTime, int signalBar) =>
+    safeSymbol    = str.length(symbol) > 0 ? symbol : "UNKNOWN"
+    safeTimeframe = str.length(timeframe) > 0 ? timeframe : "UNKNOWN"
+    direction     = phxSignalDirectionName(signal)
+    timePart      = str.tostring(signalTime)
+    barPart       = str.tostring(signalBar)
+
+    "PHX|" + safeSymbol + "|" + safeTimeframe + "|" + direction + "|" + timePart + "|" + barPart
 
 
 //=============================================================================
@@ -155,11 +167,12 @@ phxSignal() =>
     PHX_CURRENT_SIGNAL
 
 
-//=============================================================================
-// MODULE INITIALIZATION
-//=============================================================================
+phxSignalId() =>
+    PHX_SIGNAL_ID
 
-phxInitializeState()
+
+phxStateReady() =>
+    PHX_STATE_INITIALIZED
 
 
 //=============================================================================
