@@ -2,40 +2,19 @@
 // PROJECT PHOENIX
 // MODULE : Trend Engine
 //-----------------------------------------------------------------------------
-// Release : PHX-R001
+// Release : PHX-R001 / RC0-011A
 // Version : v0.1.0
 //
 // Purpose
 // -------
-// Central Trend Detection Engine.
+// Central trend-detection engine.
 //
-// This module becomes the single source of truth for trend determination.
-//
-// Current Inputs
-// --------------
-// • EMA Alignment
-// • EMA Slope
-//
-// Future Inputs
-// -------------
-// • Market Structure
-// • BOS
-// • CHoCH
-// • Swing Structure
-// • Liquidity
-// • Order Blocks
-// • Fair Value Gaps
+// Design rules
+// ------------
+// • Canonical trend constants are declared only in PHX_Types.pine.
+// • EMA calculations are delegated to PHX_EMA.pine.
+// • Functions are pure and do not mutate runtime state.
 //=============================================================================
-
-
-//=============================================================================
-// TREND ENUMERATION
-//=============================================================================
-
-const int PHX_TREND_UNKNOWN = 0
-const int PHX_TREND_BULL    = 1
-const int PHX_TREND_BEAR    = -1
-const int PHX_TREND_RANGE   = 2
 
 
 //=============================================================================
@@ -43,25 +22,14 @@ const int PHX_TREND_RANGE   = 2
 //=============================================================================
 
 phxEMATrend(series float source) =>
-
-    [
-        ema20,
-        ema50,
-        ema200,
-        bullTrend,
-        bearTrend,
-        neutralTrend
-    ] = phxBuildEMA(source)
-
-    trend = PHX_TREND_UNKNOWN
-
+    [ema20, ema50, ema200, bullTrend, bearTrend, neutralTrend] = phxBuildEMA(source)
+    int trend = PHX_TREND_UNKNOWN
     if bullTrend
         trend := PHX_TREND_BULL
     else if bearTrend
         trend := PHX_TREND_BEAR
     else
         trend := PHX_TREND_RANGE
-
     trend
 
 
@@ -69,48 +37,31 @@ phxEMATrend(series float source) =>
 // TREND NAME
 //=============================================================================
 
-phxTrendName(int trend)=>
-
-    trend == PHX_TREND_BULL ?
-         "Bullish" :
-
-    trend == PHX_TREND_BEAR ?
-         "Bearish" :
-
-    trend == PHX_TREND_RANGE ?
-         "Range" :
-
-    "Unknown"
+phxTrendName(int trend) =>
+    trend == PHX_TREND_BULL ? "Bullish" : trend == PHX_TREND_BEAR ? "Bearish" : trend == PHX_TREND_RANGE ? "Range" : "Unknown"
 
 
 //=============================================================================
 // TREND COLOR
 //=============================================================================
 
-phxTrendColor(int trend)=>
-
-    trend == PHX_TREND_BULL ?
-        color.lime :
-
-    trend == PHX_TREND_BEAR ?
-        color.red :
-
-    color.orange
+phxTrendColor(int trend) =>
+    trend == PHX_TREND_BULL ? color.lime : trend == PHX_TREND_BEAR ? color.red : color.orange
 
 
 //=============================================================================
 // TREND VALIDATION
 //=============================================================================
 
-phxIsBullTrend(int trend)=>
+phxIsBullTrend(int trend) =>
     trend == PHX_TREND_BULL
 
 
-phxIsBearTrend(int trend)=>
+phxIsBearTrend(int trend) =>
     trend == PHX_TREND_BEAR
 
 
-phxIsRange(int trend)=>
+phxIsRange(int trend) =>
     trend == PHX_TREND_RANGE
 
 
@@ -118,34 +69,9 @@ phxIsRange(int trend)=>
 // MASTER TREND ENGINE
 //=============================================================================
 
-phxTrendEngine(series float source)=>
-
-    trend = phxEMATrend(source)
-
-    [
-        trend,
-        phxTrendName(trend),
-        phxTrendColor(trend)
-    ]
-
-
-//=============================================================================
-// FUTURE EXTENSION POINT
-//=============================================================================
-
-// Future RC2:
-//
-// EMA Score
-// +
-// Structure Score
-// +
-// BOS Score
-// +
-// Liquidity Score
-// +
-// Smart Money Score
-//
-// = Institutional Trend Score
+phxTrendEngine(series float source) =>
+    int trend = phxEMATrend(source)
+    [trend, phxTrendName(trend), phxTrendColor(trend)]
 
 
 //=============================================================================
