@@ -87,16 +87,11 @@ var bool PHX_STATE_CONFIRMED   = false
 //=============================================================================
 
 phxValidTrend(int trend) =>
-    trend == PHX_TREND_BULL or
-    trend == PHX_TREND_BEAR or
-    trend == PHX_TREND_RANGE or
-    trend == PHX_TREND_UNKNOWN
+    trend == PHX_TREND_BULL or trend == PHX_TREND_BEAR or trend == PHX_TREND_RANGE or trend == PHX_TREND_UNKNOWN
 
 
 phxValidSignal(int signal) =>
-    signal == PHX_SIGNAL_BUY or
-    signal == PHX_SIGNAL_SELL or
-    signal == PHX_SIGNAL_NONE
+    signal == PHX_SIGNAL_BUY or signal == PHX_SIGNAL_SELL or signal == PHX_SIGNAL_NONE
 
 
 phxNormalizeTrend(int trend) =>
@@ -112,9 +107,7 @@ phxNormalizeSignal(int signal) =>
 //=============================================================================
 
 phxResolveSignal(bool bullCondition, bool bearCondition) =>
-    bullCondition and not bearCondition ? PHX_SIGNAL_BUY :
-    bearCondition and not bullCondition ? PHX_SIGNAL_SELL :
-    PHX_SIGNAL_NONE
+    bullCondition and not bearCondition ? PHX_SIGNAL_BUY : bearCondition and not bullCondition ? PHX_SIGNAL_SELL : PHX_SIGNAL_NONE
 
 
 phxHasTrendChanged(int previousTrend, int currentTrend) =>
@@ -132,9 +125,7 @@ phxIsActionableSignal(int signal) =>
 
 phxSignalDirectionName(int signal) =>
     normalizedSignal = phxNormalizeSignal(signal)
-    normalizedSignal == PHX_SIGNAL_BUY ? "LONG" :
-    normalizedSignal == PHX_SIGNAL_SELL ? "SHORT" :
-    "NONE"
+    normalizedSignal == PHX_SIGNAL_BUY ? "LONG" : normalizedSignal == PHX_SIGNAL_SELL ? "SHORT" : "NONE"
 
 
 phxBuildSignalId(string symbol, string timeframe, int signal, int signalTime, int signalBar) =>
