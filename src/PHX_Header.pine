@@ -1,40 +1,197 @@
 //=============================================================================
 // PROJECT PHOENIX
+// MODULE : Main Execution Engine
 //-----------------------------------------------------------------------------
-// Release      : PHX-R001
-// Version      : v0.1.0
-// Build        : RC1
+// Release : PHX-R001 / RC0-011A
+// Version : v0.1.0
 //
-// Mission
-// --------
-// "Let's build something exceptional."
+// Purpose
+// -------
+// Deterministic, global-scope orchestration for the Phoenix Pine runtime.
 //
-// Description
-// -----------
-// Project Phoenix is a professional-grade modular TradingView framework
-// engineered to provide institutional-quality trend analysis while serving
-// as the foundation for future Smart Money Concepts development.
+// Execution order per bar
+// -----------------------
+// 1. Calculate EMA and trend inputs.
+// 2. Resolve normalized trend and signal state.
+// 3. Commit the complete state once.
+// 4. Render chart outputs from committed state.
+// 5. Publish dashboard data when enabled.
 //
-// Repository
-// ----------
-// https://github.com/deepakks111-cloud/Project-Phoenix
-//
-// Owner
-// -----
-// Deepak Sharma
-//
-// Technical Lead
-// --------------
-// ChatGPT
-//
-// Copyright
-// ---------
-// © 2026 Project Phoenix
-//
-// NOTE
-// ----
-// This file is a source module used during Project Phoenix development.
-// It is NOT intended to compile independently.
-// The final production file (Phoenix_v0.1.0.pine) will contain the Pine Script
-// declaration and indicator() call.
+// Alert transport remains disabled until PHX_Alerts.pine has a validated
+// implementation and a stable external-event schema.
+//=============================================================================
+
+//=============================================================================
+// 1. CALCULATION LAYER
+//=============================================================================
+
+[
+    phxNextEMA20,
+    phxNextEMA50,
+    phxNextEMA200,
+    phxNextBullTrend,
+    phxNextBearTrend,
+    phxNextNeutralTrend
+] = phxBuildEMA(close)
+
+int phxNextTrend =
+    not ENABLE_TREND_ENGINE ? PHX_TREND_UNKNOWN :
+    phxNextBullTrend ? PHX_TREND_BULL :
+    phxNextBearTrend ? PHX_TREND_BEAR :
+    PHX_TREND_RANGE
+
+phxNextTrend := phxNormalizeTrend(phxNextTrend)
+
+string phxNextTrendName = phxTrendName(phxNextTrend)
+color phxNextTrendColor = phxTrendColor(phxNextTrend)
+
+int phxNextSignal = ENABLE_TREND_ENGINE ?
+    phxResolveSignal(phxNextBullTrend, phxNextBearTrend) :
+    PHX_SIGNAL_NONE
+
+phxNextSignal := phxNormalizeSignal(phxNextSignal)
+
+bool phxNextTrendChanged = PHX_STATE_INITIALIZED and
+    phxHasTrendChanged(PHX_CURRENT_TREND, phxNextTrend)
+
+bool phxNextSignalChanged = PHX_STATE_INITIALIZED and
+    phxHasSignalChanged(PHX_CURRENT_SIGNAL, phxNextSignal)
+
+bool phxNewActionableSignal = phxNextSignalChanged and
+    phxIsActionableSignal(phxNextSignal)
+
+string phxNextSignalId = phxNewActionableSignal ?
+    phxBuildSignalId(
+        syminfo.tickerid,
+        timeframe.period,
+        phxNextSignal,
+        time,
+        bar_index
+    ) :
+    PHX_SIGNAL_ID
+
+int phxNextSignalBar = phxNewActionableSignal ? bar_index : PHX_SIGNAL_BAR
+int phxNextSignalTime = phxNewActionableSignal ? time : PHX_SIGNAL_TIME
+
+// Alert state is prepared here for the future execution gateway. It does not
+// call alert() until the alert module and payload contract are implemented.
+bool phxNextAlertTriggered = ENABLE_ALERT_ENGINE and
+    barstate.isconfirmed and
+    phxNewActionableSignal
+
+string phxNextAlertEventId = phxNextAlertTriggered ?
+    phxNextSignalId :
+    PHX_ALERT_EVENT_ID
+
+int phxNextAlertBar = phxNextAlertTriggered ? bar_index : PHX_ALERT_BAR
+
+//=============================================================================
+// 2. SINGLE STATE COMMIT
+//=============================================================================
+
+PHX_EMA20 := phxNextEMA20
+PHX_EMA50 := phxNextEMA50
+PHX_EMA200 := phxNextEMA200
+
+PHX_PREVIOUS_TREND := PHX_CURRENT_TREND
+PHX_CURRENT_TREND := phxNextTrend
+PHX_CURRENT_TREND_NAME := phxNextTrendName
+PHX_CURRENT_TREND_COLOR := phxNextTrendColor
+PHX_TREND_CHANGED := phxNextTrendChanged
+
+PHX_PREVIOUS_SIGNAL := PHX_CURRENT_SIGNAL
+PHX_CURRENT_SIGNAL := phxNextSignal
+PHX_SIGNAL_CHANGED := phxNextSignalChanged
+PHX_SIGNAL_ID := phxNextSignalId
+PHX_SIGNAL_BAR := phxNextSignalBar
+PHX_SIGNAL_TIME := phxNextSignalTime
+
+PHX_ALERT_TRIGGERED := phxNextAlertTriggered
+PHX_ALERT_EVENT_ID := phxNextAlertEventId
+PHX_ALERT_BAR := phxNextAlertBar
+
+PHX_STATE_INITIALIZED := true
+PHX_STATE_BAR_INDEX := bar_index
+PHX_STATE_TIME := time
+PHX_STATE_CONFIRMED := barstate.isconfirmed
+
+//=============================================================================
+// 3. GLOBAL-SCOPE VISUAL OUTPUTS
+// Pine plot() and bgcolor() calls must remain in global scope.
+//=============================================================================
+
+plot(
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA20 ? PHX_EMA20 : na,
+    title = "EMA 20",
+    color = color.aqua,
+    linewidth = 2
+)
+
+plot(
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA50 ? PHX_EMA50 : na,
+    title = "EMA 50",
+    color = color.orange,
+    linewidth = 2
+)
+
+plot(
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA200 ? PHX_EMA200 : na,
+    title = "EMA 200",
+    color = color.red,
+    linewidth = 3
+)
+
+color phxBackgroundColor =
+    PHX_CURRENT_TREND == PHX_TREND_BULL ? color.new(color.green, 90) :
+    PHX_CURRENT_TREND == PHX_TREND_BEAR ? color.new(color.red, 90) :
+    color.new(color.gray, 94)
+
+bgcolor(
+    ENABLE_VISUALIZATION and ENABLE_TREND_ENGINE and SHOW_TREND_BACKGROUND ?
+        phxBackgroundColor :
+        na,
+    title = "Phoenix Trend Background"
+)
+
+//=============================================================================
+// 4. CONTROLLED TREND LABEL
+// One persistent label is updated only on the last visible bar.
+//=============================================================================
+
+var label phxTrendLabel = na
+
+bool phxShowTrendLabel = ENABLE_VISUALIZATION and
+    ENABLE_TREND_ENGINE and
+    SHOW_TREND_LABELS and
+    barstate.islast
+
+if phxShowTrendLabel
+    if na(phxTrendLabel)
+        phxTrendLabel := label.new(
+            bar_index,
+            high,
+            PHX_CURRENT_TREND_NAME,
+            style = label.style_label_down,
+            color = PHX_CURRENT_TREND_COLOR,
+            textcolor = color.white,
+            size = size.small
+        )
+    else
+        label.set_xy(phxTrendLabel, bar_index, high)
+        label.set_text(phxTrendLabel, PHX_CURRENT_TREND_NAME)
+        label.set_color(phxTrendLabel, PHX_CURRENT_TREND_COLOR)
+        label.set_textcolor(phxTrendLabel, color.white)
+else if not na(phxTrendLabel)
+    label.delete(phxTrendLabel)
+    phxTrendLabel := na
+
+//=============================================================================
+// 5. DASHBOARD
+//=============================================================================
+
+if ENABLE_DASHBOARD and barstate.islast
+    phxRenderDashboard()
+
+//=============================================================================
+// END OF MODULE
 //=============================================================================
