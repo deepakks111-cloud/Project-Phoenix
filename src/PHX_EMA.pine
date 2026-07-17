@@ -2,16 +2,12 @@
 // PROJECT PHOENIX
 // MODULE : EMA Engine
 //-----------------------------------------------------------------------------
-// Release : PHX-R001
+// Release : PHX-R001 / RC0-011A
 // Version : v0.1.0
 //
 // Purpose
 // -------
-// Dedicated EMA calculation engine.
-//
-// This module provides reusable EMA calculations and trend utilities.
-// All future Phoenix modules must use these functions instead of creating
-// independent EMA calculations.
+// Centralized EMA calculations and EMA-based trend helpers.
 //=============================================================================
 
 
@@ -44,8 +40,7 @@ phxBearTrend(float emaFast, float emaMid, float emaSlow) =>
 
 
 phxNeutralTrend(float emaFast, float emaMid, float emaSlow) =>
-    not phxBullTrend(emaFast, emaMid, emaSlow) and
-    not phxBearTrend(emaFast, emaMid, emaSlow)
+    not phxBullTrend(emaFast, emaMid, emaSlow) and not phxBearTrend(emaFast, emaMid, emaSlow)
 
 
 //=============================================================================
@@ -89,21 +84,15 @@ phxBearCross(float emaFast, float emaMid) =>
 //=============================================================================
 
 phxBuildEMA(series float source) =>
-
-    ema20  = phxEMAFast(source)
-    ema50  = phxEMAMid(source)
-    ema200 = phxEMASlow(source)
-
-    [
-        ema20,
-        ema50,
-        ema200,
-        phxBullTrend(ema20, ema50, ema200),
-        phxBearTrend(ema20, ema50, ema200),
-        phxNeutralTrend(ema20, ema50, ema200)
-    ]
+    float ema20 = phxEMAFast(source)
+    float ema50 = phxEMAMid(source)
+    float ema200 = phxEMASlow(source)
+    bool bullTrend = phxBullTrend(ema20, ema50, ema200)
+    bool bearTrend = phxBearTrend(ema20, ema50, ema200)
+    bool neutralTrend = not bullTrend and not bearTrend
+    [ema20, ema50, ema200, bullTrend, bearTrend, neutralTrend]
 
 
 //=============================================================================
-// END OF EMA ENGINE
+// END OF MODULE
 //=============================================================================
