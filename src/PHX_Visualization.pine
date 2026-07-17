@@ -2,176 +2,50 @@
 // PROJECT PHOENIX
 // MODULE : Visualization Engine
 //-----------------------------------------------------------------------------
-// Release : PHX-R001
+// Release : PHX-R001 / RC0-011A
 // Version : v0.1.0
 //
 // Purpose
 // -------
-// Central visualization engine.
+// Pure visualization helpers only.
 //
-// Responsible for all chart rendering including:
-//
-// • EMA plots
-// • Trend colouring
-// • Trend labels
-// • Future Dashboard
-// • Future Smart Money objects
-//
-// NOTE
-// ----
-// No calculations are performed here.
-// Visualization only.
+// Pine restrictions
+// -----------------
+// plot() and bgcolor() cannot be called from local scope or user functions.
+// Their global-scope calls are therefore owned by PHX_Main.pine.
 //=============================================================================
 
 
 //=============================================================================
-// EMA VISUALIZATION
+// TREND BACKGROUND COLOR
 //=============================================================================
 
-phxPlotEMAs(float ema20, float ema50, float ema200)=>
-
-    if SHOW_EMA20
-        plot(
-             ema20,
-             title="EMA 20",
-             color=color.aqua,
-             linewidth=2
-        )
-
-    if SHOW_EMA50
-        plot(
-             ema50,
-             title="EMA 50",
-             color=color.orange,
-             linewidth=2
-        )
-
-    if SHOW_EMA200
-        plot(
-             ema200,
-             title="EMA 200",
-             color=color.red,
-             linewidth=3
-        )
+phxTrendBackgroundColor(int trend) =>
+    trend == PHX_TREND_BULL ? color.new(color.green, 90) : trend == PHX_TREND_BEAR ? color.new(color.red, 90) : color.new(color.gray, 94)
 
 
 //=============================================================================
-// TREND BACKGROUND
+// VISIBILITY HELPERS
 //=============================================================================
 
-phxPlotTrendBackground(int trend)=>
-
-    if SHOW_TREND_BACKGROUND
-
-        bgcolor(
-
-            trend == PHX_TREND_BULL ?
-
-                color.new(color.green,90)
-
-            :
-
-            trend == PHX_TREND_BEAR ?
-
-                color.new(color.red,90)
-
-            :
-
-                color.new(color.gray,94)
-
-        )
+phxEMA20PlotValue(float ema20) =>
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA20 ? ema20 : na
 
 
-//=============================================================================
-// TREND LABEL
-//=============================================================================
-
-phxPlotTrendLabel(int trend,string trendName)=>
-
-    if SHOW_TREND_LABELS
-
-        var label trendLabel = na
-
-        label.delete(trendLabel)
-
-        trendLabel := label.new(
-
-            bar_index,
-
-            high,
-
-            trendName,
-
-            style=label.style_label_down,
-
-            color=phxTrendColor(trend),
-
-            textcolor=color.white,
-
-            size=size.small
-
-        )
+phxEMA50PlotValue(float ema50) =>
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA50 ? ema50 : na
 
 
-//=============================================================================
-// MASTER VISUALIZATION
-//=============================================================================
-
-phxRender(
-
-    float ema20,
-
-    float ema50,
-
-    float ema200,
-
-    int trend,
-
-    string trendName
-
-)=>
-
-    phxPlotEMAs(
-
-        ema20,
-
-        ema50,
-
-        ema200
-
-    )
-
-    phxPlotTrendBackground(
-
-        trend
-
-    )
-
-    phxPlotTrendLabel(
-
-        trend,
-
-        trendName
-
-    )
+phxEMA200PlotValue(float ema200) =>
+    ENABLE_VISUALIZATION and ENABLE_EMA_ENGINE and SHOW_EMA200 ? ema200 : na
 
 
-//=============================================================================
-// RESERVED
-//=============================================================================
-//
-// RC2
-//
-// Dashboard
-// BOS Labels
-// CHOCH Labels
-// Liquidity
-// FVG
-// Order Blocks
-// Session Boxes
-// Premium Discount Zones
-//
-//=============================================================================
+phxBackgroundPlotColor(int trend) =>
+    ENABLE_VISUALIZATION and ENABLE_TREND_ENGINE and SHOW_TREND_BACKGROUND ? phxTrendBackgroundColor(trend) : na
+
+
+phxShouldShowTrendLabel() =>
+    ENABLE_VISUALIZATION and ENABLE_TREND_ENGINE and SHOW_TREND_LABELS and barstate.islast
 
 
 //=============================================================================
